@@ -29,10 +29,13 @@ contract DannyNFT is DannyBase, VRFConsumerBase {
   string public defaultURI;
 
   bool requestedVRF = false;
-  bool revealed = false;
+  bool shuffled = false;
   bool privateSaleRevealed = false;
   bool publicSaleRevealed = false;
   bool publicSaleStarted = false;
+
+  mapping(address => uint) public originalOwns;
+  mapping(address => bool) public originalOwner;
 
   constructor(
     address _VRFCoordinator,
@@ -73,6 +76,10 @@ contract DannyNFT is DannyBase, VRFConsumerBase {
       
       if (tokenIndex < maxSupply) {
         _safeMint(_to, tokenIndex);
+        if(originalOwner[_to] == false) {
+          originalOwner[_to] = true;
+        }
+        originalOwns[_to] += 1;
         if (mode == MintMode.AIRDROP) _totalAirdrop = _totalAirdrop + 1;
         if (mode == MintMode.PRESALE) _totalPrivateSale = _totalPrivateSale + 1;
         if (mode == MintMode.PUBLICSALE) _totalPublicSale = _totalPublicSale + 1;
@@ -174,10 +181,8 @@ contract DannyNFT is DannyBase, VRFConsumerBase {
   }
 
   function isRevealed(uint256 tokenId) internal view returns (bool) {
-    if (!revealed) return false;
-    if (tokenId < publicSaleIndex && privateSaleRevealed) {
-      return true;
-    }
+    if (!shuffled) return false;
+    if (tokenId <= _totalPrivateSale +maxAirdrop && privateSaleRevealed ) return true;
     return publicSaleRevealed;
   }
 
@@ -189,10 +194,15 @@ contract DannyNFT is DannyBase, VRFConsumerBase {
     publicSaleRevealed = true;
   }
 
+  function originalOwn() public view onlyOwner returns(uint256) {
+    if (originalOwner[_msgSender()] == false) return 0;
+    return originalOwns[_msgSender()];
+  }
+
   function shuffle() public onlyOwner {
     require(requestedVRF, "You have NOT request for VRF");
     require(seed > 0, "Your random seed is not populated");
-    require(!revealed, "You can only reveal once");
+    require(!shuffled, "You can only shuffle once");
     metaIds = new uint256[](maxSupply);
     for (uint256 i = 1; i <= maxSupply; i++) {
       metaIds[i] = i;
@@ -202,14 +212,14 @@ contract DannyNFT is DannyBase, VRFConsumerBase {
       uint256 j = (uint256(keccak256(abi.encode(seed, i))) % (maxSupply));
       (metaIds[i], metaIds[j]) = (metaIds[j], metaIds[i]);
     }
-    revealed = true;
+    shuffled = true;
     emit DannyNFTReveal(now);
   }
 
   function metadataOf(uint256 tokenId) public view returns (string memory) {
     require(tokenId < totalSupply(), "Token id invalid");
     bool isTokenRevealed = isRevealed(tokenId);
-    if (seed == 0 || !revealed || !isTokenRevealed) return "default";
+    if (seed == 0 || !shuffled || !isTokenRevealed) return "default";
     return Strings.toString(metaIds[tokenId]);
   }
 
@@ -228,11 +238,9 @@ contract DannyNFT is DannyBase, VRFConsumerBase {
     require(tokenId < totalSupply(), "Token not exist.");
     bool isTokenRevealed = isRevealed(tokenId);
     // before we reveal, everyone will get default URI
-    if (!requestedVRF || !revealed || !isTokenRevealed) return defaultURI;    
+    if (!requestedVRF || !shuffled || !isTokenRevealed) return defaultURI;    
 
     // after revealed, send shuffled metadata to owner
     return string(abi.encodePacked(baseURI(), metadataOf(tokenId), ".json"));
   }
-  
-
 }

@@ -49,6 +49,8 @@ async function main() {
   console.log(`npx hardhat verify --network rinkeby ${token.address} "${coordinator}" "${linkToken}" "${hashkey}" "${token_name}" "${token_symbol}" ${privateSalePrice}  ${publicSalePrice}  ${maxAirdrop} ${maxSupply} ${mintLimitPerTx} "${lootboxUrl}"`);
   console.log("\r\nMainnet");
   console.log(`npx hardhat verify --network mainnet ${token.address} "${coordinator}" "${linkToken}" "${hashkey}" "${token_name}" "${token_symbol}" ${privateSalePrice}  ${publicSalePrice}  ${maxAirdrop} ${maxSupply} ${mintLimitPerTx} "${lootboxUrl}"`);
+  console.log("\r\n BSC Testnet");
+  console.log(`npx hardhat verify --network bsctestnet ${token.address} "${coordinator}" "${linkToken}" "${hashkey}" "${token_name}" "${token_symbol}" ${privateSalePrice}  ${publicSalePrice}  ${maxAirdrop} ${maxSupply} ${mintLimitPerTx} "${lootboxUrl}"`);
 
   //console.log(coordinator, linkToken, hashkey, token_name, token_symbol, mint_fee, max_supply, mint_limit_per_tx, lootboxUrl);
 }
