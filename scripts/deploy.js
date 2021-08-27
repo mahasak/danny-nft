@@ -22,9 +22,12 @@ async function main() {
   const token_name = "Darwin Fan Token";
   const token_symbol = "DAN";
   const mint_fee = new BigNumber.from("1000000000000000") // 0.01 ETH
+  const privateSalePrice = new BigNumber.from("7700000000000000") // 0.01 ETH
+  const publicSalePrice = new BigNumber.from("8800000000000000") // 0.01 ETH
   const lootboxUrl = "https://maximillion-dev.web.app/metadata/loot.json";
-  const mint_limit_per_tx = 10;
-  const max_supply = 100;
+  const mintLimitPerTx = 10;
+  const maxAirdrop = 111;
+  const maxSupply = 33333;
 
   // for Rinkby/local
   const coordinator = ethers.utils.getAddress(chainlink.rinkeby.coordinator);
@@ -37,17 +40,17 @@ async function main() {
   //const hashkey = chainlink.mainnet.hashkey;
 
   const contract = await hre.ethers.getContractFactory("DannyNFT");
-  const token = await contract.deploy(coordinator, linkToken, hashkey, token_name, token_symbol, mint_fee, max_supply, mint_limit_per_tx, lootboxUrl);
+  const token = await contract.deploy(coordinator, linkToken, hashkey, token_name, token_symbol, privateSalePrice, publicSalePrice, maxAirdrop, maxSupply, mintLimitPerTx, lootboxUrl);
 
   await token.deployed()
   console.log("Danny contract deployed to:", token.address);
   console.log("Verify contract with following command");
-  console.log("Rinkeby");
-  console.log(`npx hardhat verify --network rinkeby ${token.address} "${coordinator}" "${linkToken}" "${hashkey}" "${token_name}" "${token_symbol}" ${mint_fee} ${max_supply} ${mint_limit_per_tx} "${lootboxUrl}"`);
-  console.log("Mainnet");
-  console.log(`npx hardhat verify --network mainnet ${token.address} "${coordinator}" "${linkToken}" "${hashkey}" "${token_name}" "${token_symbol}" ${mint_fee} ${max_supply} ${mint_limit_per_tx} "${lootboxUrl}"`);
+  console.log("\r\nRinkeby");
+  console.log(`npx hardhat verify --network rinkeby ${token.address} "${coordinator}" "${linkToken}" "${hashkey}" "${token_name}" "${token_symbol}" ${privateSalePrice}  ${publicSalePrice}  ${maxAirdrop} ${maxSupply} ${mintLimitPerTx} "${lootboxUrl}"`);
+  console.log("\r\nMainnet");
+  console.log(`npx hardhat verify --network mainnet ${token.address} "${coordinator}" "${linkToken}" "${hashkey}" "${token_name}" "${token_symbol}" ${privateSalePrice}  ${publicSalePrice}  ${maxAirdrop} ${maxSupply} ${mintLimitPerTx} "${lootboxUrl}"`);
 
-  console.log(coordinator, linkToken, hashkey, token_name, token_symbol, mint_fee, max_supply, mint_limit_per_tx, lootboxUrl);
+  //console.log(coordinator, linkToken, hashkey, token_name, token_symbol, mint_fee, max_supply, mint_limit_per_tx, lootboxUrl);
 }
 
 main()
