@@ -12,17 +12,30 @@ contract DannyNFT is DannyBase, VRFConsumerBase {
   event DannyNFTRandomnessFulfil(bytes32 requestId, uint256 tokenId);
   event DannyNFTReveal(uint timestamp);
 
+  enum MintMode {AIRDROP, PRESALE, PUBLICSALE}
+
   uint256 public seed;
   bytes32 internal keyHash;
   uint256 internal chainlinkFee;
+
+  uint256 private _totalAirdrop;
+  uint256 private _totalPrivateSale;
+  uint256 private _totalPublicSale;
+  uint256 private publicSaleIndex;
 
   uint256[] internal metaIds;
 
   string public specialURI;
   string public defaultURI;
 
-  bool requestedVRF;
-  bool revealed;
+  bool requestedVRF = false;
+  bool shuffled = false;
+  bool privateSaleRevealed = false;
+  bool publicSaleRevealed = false;
+  bool publicSaleStarted = false;
+
+  mapping(address => uint) public originalOwns;
+  mapping(address => bool) public originalOwner;
 
   constructor(
     address _VRFCoordinator,
@@ -30,12 +43,14 @@ contract DannyNFT is DannyBase, VRFConsumerBase {
     bytes32 _keyHash,
     string memory _tokenName,
     string memory _tokenSymbol,
-    uint256 _mintFee, 
+    uint256 _privateSalePrice, 
+    uint256 _publicSalePrice, 
+    uint256 _maxAirdrop,
     uint256 _maxSupply, 
     uint256 _limitMint,
     string memory _defaultURI
   ) public 
-    DannyBase(_tokenName, _tokenSymbol, _mintFee, _maxSupply, _limitMint)
+    DannyBase(_tokenName, _tokenSymbol, _privateSalePrice, _publicSalePrice, _maxAirdrop, _maxSupply, _limitMint)
     VRFConsumerBase(_VRFCoordinator, _LINKToken) 
   {
     chainlinkFee = 2 * 10**18; // 2 LINK token
@@ -55,23 +70,90 @@ contract DannyNFT is DannyBase, VRFConsumerBase {
    * @dev mint `numberToken` for msg.sender aka who call method.
    * @param numberToken number token collector want to mint
    */
-  function _mintDanny(address _to,uint256 numberToken) internal returns (bool) {
+  function _mint(MintMode mode,address _to,uint256 numberToken) internal returns (bool) {
     for (uint256 i = 0; i < numberToken; i++) {
-      uint256 tokenIndex = totalSupply();
-      if (tokenIndex < MAX_SUPPLY) {
+      uint256 tokenIndex = currentTokenIndex(mode);      
+      
+      if (tokenIndex < maxSupply) {
         _safeMint(_to, tokenIndex);
+        if(originalOwner[_to] == false) {
+          originalOwner[_to] = true;
+        }
+        originalOwns[_to] += 1;
+        if (mode == MintMode.AIRDROP) _totalAirdrop = _totalAirdrop + 1;
+        if (mode == MintMode.PRESALE) _totalPrivateSale = _totalPrivateSale + 1;
+        if (mode == MintMode.PUBLICSALE) _totalPublicSale = _totalPublicSale + 1;
       }
     }
     return true;
   }
 
-  function mintDanny(uint256 numberToken)
+  function currentTokenIndex(MintMode mode) public view returns (uint256) {
+    if (mode == MintMode.AIRDROP) {
+        return _totalAirdrop + 1;
+      }
+
+      if (mode == MintMode.PRESALE) {
+        return _totalPrivateSale + maxAirdrop + 1;
+      }
+
+      if (mode == MintMode.PUBLICSALE) {
+        return _totalPublicSale + publicSaleIndex + 1;
+      }   
+  }
+
+  function mint(uint256 numberToken)
     public
     payable
     online
     mintable(numberToken)
     returns (bool) {
-    return _mintDanny(_msgSender(), numberToken);
+    
+    return _mint(getMintMode(), _msgSender(), numberToken);
+  }
+
+  function getMintMode() internal view returns(MintMode) {
+    if (publicSaleStarted) return MintMode.PUBLICSALE;
+    return MintMode.PRESALE;
+  }
+
+
+  /**
+   * @dev Minted for marketing purpose before public sale e.g. raffling/competetion
+   * @param _to address to receive airdrop
+   * @param numberToken amount to airdrop
+   * @notice You only call this before private sale, and it should be call when offline
+   */
+  function airdrop(address _to, uint256 numberToken) public offline onlyOwner {
+    require(totalSupply() < maxAirdrop, "Exceed airdop allowance limit.");
+    _mint(MintMode.AIRDROP, _to, numberToken); // mint for marketing & influencer
+  }
+
+  /**
+   * @dev Minted for marketing purpose after public sale e.g. raffling/competetion
+   * @param _to address to receive airdrop
+   * @param numberToken amount to airdrop
+   * @notice You only call this before private sale, and it should be call when offline
+   */
+  function publicAirdrop(address _to, uint256 numberToken) public online onlyOwner {
+    _mint(MintMode.PUBLICSALE, _to, numberToken); // mint for marketing & influencer
+  }
+
+  function startPublicSale() public offline onlyOwner {
+    publicSaleStarted = true;
+    publicSaleIndex = currentTokenIndex(MintMode.PRESALE);
+  }
+
+  function totalAirdrop() public view returns(uint) {
+    return _totalPrivateSale;
+  }
+
+  function totalPrivateSale() public view returns(uint) {
+    return _totalPrivateSale;
+  }
+
+  function totalPublicSale() public view returns(uint) {
+    return _totalPublicSale;
   }
 
   /**
@@ -98,26 +180,46 @@ contract DannyNFT is DannyBase, VRFConsumerBase {
     emit DannyNFTRandomnessFulfil(_requestId, seed);
   }
 
-  function reveal() public onlyOwner {
+  function isRevealed(uint256 tokenId) internal view returns (bool) {
+    if (!shuffled) return false;
+    if (tokenId <= _totalPrivateSale +maxAirdrop && privateSaleRevealed ) return true;
+    return publicSaleRevealed;
+  }
+
+  function privateSaleReveal() public onlyOwner {
+    privateSaleRevealed = true;
+  }
+
+  function publicSaleReveal() public onlyOwner {
+    publicSaleRevealed = true;
+  }
+
+  function originalOwn() public view onlyOwner returns(uint256) {
+    if (originalOwner[_msgSender()] == false) return 0;
+    return originalOwns[_msgSender()];
+  }
+
+  function shuffle() public onlyOwner {
     require(requestedVRF, "You have NOT request for VRF");
     require(seed > 0, "Your random seed is not populated");
-    require(!revealed, "You can only reveal once");
-    metaIds = new uint256[](MAX_SUPPLY);
-    for (uint256 i = 0; i < MAX_SUPPLY; i++) {
+    require(!shuffled, "You can only shuffle once");
+    metaIds = new uint256[](maxSupply);
+    for (uint256 i = 1; i <= maxSupply; i++) {
       metaIds[i] = i;
     }
     // shuffle meta id
-    for (uint256 i = 0; i < MAX_SUPPLY; i++) {
-      uint256 j = (uint256(keccak256(abi.encode(seed, i))) % (MAX_SUPPLY));
+    for (uint256 i = 1; i <= maxSupply; i++) {
+      uint256 j = (uint256(keccak256(abi.encode(seed, i))) % (maxSupply));
       (metaIds[i], metaIds[j]) = (metaIds[j], metaIds[i]);
     }
-    revealed = true;
+    shuffled = true;
     emit DannyNFTReveal(now);
   }
 
   function metadataOf(uint256 tokenId) public view returns (string memory) {
     require(tokenId < totalSupply(), "Token id invalid");
-    if (seed == 0 || !revealed) return "";
+    bool isTokenRevealed = isRevealed(tokenId);
+    if (seed == 0 || !shuffled || !isTokenRevealed) return "default";
     return Strings.toString(metaIds[tokenId]);
   }
 
@@ -134,21 +236,11 @@ contract DannyNFT is DannyBase, VRFConsumerBase {
     returns (string memory)
   {
     require(tokenId < totalSupply(), "Token not exist.");
+    bool isTokenRevealed = isRevealed(tokenId);
+    // before we reveal, everyone will get default URI
+    if (!requestedVRF || !shuffled || !isTokenRevealed) return defaultURI;    
 
-    // before reveal, nobody know what happened
-    if (!requestedVRF || !revealed) {
-      return defaultURI;
-    }
-
-    // after reveal, you can know your know.
+    // after revealed, send shuffled metadata to owner
     return string(abi.encodePacked(baseURI(), metadataOf(tokenId), ".json"));
-  }
-  
-  /**
-   * @dev Minted early for owner, only owner can call, use also want to provide link to 5 metadata
-   * @notice You only call this one time, and it should be call when offline
-   */
-  function airdrop(address _to, uint256 numberToken) public offline onlyOwner {
-    _mintDanny(_to, numberToken); // mint for marketing & influencer
   }
 }

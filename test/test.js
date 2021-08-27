@@ -18,7 +18,18 @@ describe("DannyNFT", function () {
   it("Should return the right name and symbol", async function () {
     const pointZeroOneEth = new BigNumber.from("1000000000000000") // 0.01 ETH
     const contract = await hre.ethers.getContractFactory("DannyNFT");
-    const token = await contract.deploy(COORDINATOR_ADDRESS, LINK_ADDRESS, KEY_HASH,"Test Danny Token", "DFC", pointZeroOneEth, 111, 1, "http://ipfs.io/x");
+    const token = await contract.deploy(
+      COORDINATOR_ADDRESS, 
+      LINK_ADDRESS, 
+      KEY_HASH,
+      "Test Danny Token", 
+      "DFC", 
+      pointZeroOneEth, 
+      pointZeroOneEth, 
+      111,
+      33333, 
+      1, 
+      "http://ipfs.io/x");
     
     await token.deployed();
 
@@ -30,73 +41,43 @@ describe("DannyNFT", function () {
     const [owner] = await ethers.getSigners();
     const pointZeroOneEth = new BigNumber.from("1000000000000000") // 0.01 ETH
     const contract = await hre.ethers.getContractFactory("DannyNFT");
-    const token = await contract.deploy(COORDINATOR_ADDRESS, LINK_ADDRESS, KEY_HASH,"Test Danny Token", "DFC", pointZeroOneEth, 111, 1, "http://ipfs.io/x");
-
+    const token = await contract.deploy(
+      COORDINATOR_ADDRESS, 
+      LINK_ADDRESS, 
+      KEY_HASH,
+      "Test Danny Token", 
+      "DFC", 
+      pointZeroOneEth, 
+      pointZeroOneEth, 
+      111,
+      33333, 
+      1, 
+      "http://ipfs.io/x");
     await token.deployed();
     const ownerBalance = await token.balanceOf(owner.address);
     
     expect(BigNumber.from("0")._hex).to.equal(ownerBalance._hex);
   });
 
-  it("Early mint should only allow when offline", async function () {    
-    const pointZeroOneEth = new BigNumber.from("1000000000000000") // 0.01 ETH
-    const contract = await hre.ethers.getContractFactory("DannyNFT");
-    const token = await contract.deploy(COORDINATOR_ADDRESS, LINK_ADDRESS, KEY_HASH,"Test Danny Token", "DFC", pointZeroOneEth, 111, 1, "http://ipfs.io/x");
-
-    await token.deployed();
-    
-    await token.toggleActive();
-    
-    let error = null
-    try {
-      await token.earlyMint()
-    }
-    catch (err) {
-      error = err
-    }
-
-    expect(error).to.be.an('Error')
-    expect(error.message).to.equal("VM Exception while processing transaction: reverted with reason string 'Contract must be offline.'")
-  });
-
-  it("Early mint should allow when offline", async function () {
-    const [owner] = await ethers.getSigners();
-    
-    const pointZeroOneEth = new BigNumber.from("1000000000000000") // 0.01 ETH
-    const contract = await hre.ethers.getContractFactory("DannyNFT");
-    const token = await contract.deploy(COORDINATOR_ADDRESS, LINK_ADDRESS, KEY_HASH,"Test Danny Token", "DFC", pointZeroOneEth, 111, 1, "http://ipfs.io/x");
-
-    await token.deployed();
-
-    await token.earlyMint()
-    
-    const ownerBalance = await token.balanceOf(owner.address);
-    expect(BigNumber.from("60")._hex).to.equal(ownerBalance._hex);
-  });
-
-  it("Early mint should allow when offline and mint all when total supply under 60", async function () {
-    const [owner] = await ethers.getSigners();
-    
-    const pointZeroOneEth = new BigNumber.from("1000000000000000") // 0.01 ETH
-    const contract = await hre.ethers.getContractFactory("DannyNFT");
-    const token = await contract.deploy(COORDINATOR_ADDRESS, LINK_ADDRESS, KEY_HASH,"Test Danny Token", "DFC", pointZeroOneEth, 55, 1, "http://ipfs.io/x");
-
-    await token.deployed();
-    
-    await token.earlyMint()
-    
-    const ownerBalance = await token.balanceOf(owner.address);
-    expect(BigNumber.from("55")._hex).to.equal(ownerBalance._hex);
-  });
 
   it("Airdrop Should transfer tokens to address", async function () {
     const [owner, addr1, addr2] = await ethers.getSigners();
     
     const pointZeroOneEth = new BigNumber.from("1000000000000000") // 0.01 ETH
     const contract = await hre.ethers.getContractFactory("DannyNFT");
-    const token = await contract.deploy(COORDINATOR_ADDRESS, LINK_ADDRESS, KEY_HASH,"Test Danny Token", "DFC", pointZeroOneEth, 111, 1, "http://ipfs.io/x");
-
-    await token.deployed();
+    const token = await contract.deploy(
+      COORDINATOR_ADDRESS, 
+      LINK_ADDRESS, 
+      KEY_HASH,
+      "Test Danny Token", 
+      "DFC", 
+      pointZeroOneEth, 
+      pointZeroOneEth, 
+      111,
+      33333, 
+      1, 
+      "http://ipfs.io/x");
+          await token.deployed();
     
     await token.airdrop(addr1.address, 1)
     
