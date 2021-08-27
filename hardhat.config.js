@@ -14,6 +14,14 @@ module.exports = {
   networks: {
     hardhat: {
     },
+    alchemyrinkeby: {
+      url: 'https://eth-rinkeby.alchemyapi.io/v2/OJETIQOWM-Jlf-1jpe38Bbd-Y1dVZh5a',
+      accounts: [privateKey]
+    },
+    ropsten: {
+      url: 'https://ropsten.infura.io/v3/6419cb36c58e45008cb3a2471a2b0aa1',
+      accounts: [privateKey]
+    },
     rinkeby: {
       url: `https://rinkeby.infura.io/v3/${infuraID}`,
       accounts: [privateKey]

@@ -194,9 +194,9 @@ contract DannyNFT is DannyBase, VRFConsumerBase {
     publicSaleRevealed = true;
   }
 
-  function originalOwn() public view onlyOwner returns(uint256) {
-    if (originalOwner[_msgSender()] == false) return 0;
-    return originalOwns[_msgSender()];
+  function originalOwn(address addr) public view onlyOwner returns(uint256) {
+    if (originalOwner[addr] == false) return 0;
+    return originalOwns[addr];
   }
 
   function shuffle() public onlyOwner {
