@@ -36,6 +36,7 @@ contract DannyNFT is DannyBase, VRFConsumerBase {
 
   mapping(address => uint) private originalOwns;
   mapping(address => bool) private originalOwner;
+  mapping(address => bool) private presaleAllowed;
 
   constructor(
     address _VRFCoordinator,
@@ -71,6 +72,9 @@ contract DannyNFT is DannyBase, VRFConsumerBase {
    * @param numberToken number token collector want to mint
    */
   function _mint(MintMode mode,address _to,uint256 numberToken) internal returns (bool) {
+    if (mode == MintMode.PRESALE) {
+      require(presaleAllowed[_to], "Only whitelist addresses allowed");
+    }
     for (uint256 i = 0; i < numberToken; i++) {
       uint256 tokenIndex = currentTokenIndex(mode);      
       
@@ -127,6 +131,12 @@ contract DannyNFT is DannyBase, VRFConsumerBase {
     require(_totalAirdrop + (_to.length * numberToken) <= maxAirdrop, "Exceed airdop allowance limit.");
     for (uint i = 0; i < _to.length; i++) {
       _mint(MintMode.AIRDROP, _to[i], numberToken); // mint for marketing & influencer
+    }
+  }
+
+  function whitelist(address[] allowlist) public offline onlyOwner {
+    for(uint i = 0; i < allowlist.length; i++) {
+      presaleAllowed[address[i]] = true;
     }
   }
 
