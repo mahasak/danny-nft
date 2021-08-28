@@ -134,9 +134,9 @@ contract DannyNFT is DannyBase, VRFConsumerBase {
     }
   }
 
-  function whitelist(address[] allowlist) public offline onlyOwner {
+  function whitelist(address[] memory allowlist) public offline onlyOwner {
     for(uint i = 0; i < allowlist.length; i++) {
-      presaleAllowed[address[i]] = true;
+      presaleAllowed[allowlist[i]] = true;
     }
   }
 
