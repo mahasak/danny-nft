@@ -9,7 +9,15 @@ const fs = require('fs')
 const {privateKey, etherscanApiKey, infuraID } = require('./.secrets.json');
 
 module.exports = {
-  solidity: "0.6.6",
+  solidity: {
+    version: "0.6.6",
+    settings: {
+      optimizer: {
+        enabled: true,
+        runs: 100,
+      },
+    },
+  },
   defaultNetwork: "hardhat",
   networks: {
     hardhat: {
@@ -47,9 +55,6 @@ module.exports = {
     timeout: 20000
   },
   etherscan: {
-    // Your API key for Etherscan
-    // Obtain one at https://etherscan.io/
-    //apiKey: etherscanApiKey
-    apiKey: "BDMQWDUWHKDV534US2163C4XZ2IQ87AAV7"
+    apiKey: etherscanApiKey
   },
 };

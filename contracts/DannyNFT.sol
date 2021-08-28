@@ -18,10 +18,10 @@ contract DannyNFT is DannyBase, VRFConsumerBase {
   bytes32 internal keyHash;
   uint256 internal chainlinkFee;
 
-  uint256 private _totalAirdrop;
-  uint256 private _totalPrivateSale;
-  uint256 private _totalPublicSale;
-  uint256 private publicSaleIndex;
+  uint private _totalAirdrop;
+  uint private _totalPrivateSale;
+  uint private _totalPublicSale;
+  uint private publicSaleIndex;
 
   uint256[] internal metaIds;
 
@@ -34,8 +34,8 @@ contract DannyNFT is DannyBase, VRFConsumerBase {
   bool publicSaleRevealed = false;
   bool publicSaleStarted = false;
 
-  mapping(address => uint) public originalOwns;
-  mapping(address => bool) public originalOwner;
+  mapping(address => uint) private originalOwns;
+  mapping(address => bool) private originalOwner;
 
   constructor(
     address _VRFCoordinator,
@@ -125,8 +125,21 @@ contract DannyNFT is DannyBase, VRFConsumerBase {
    * @notice You only call this before private sale, and it should be call when offline
    */
   function airdrop(address _to, uint256 numberToken) public offline onlyOwner {
-    require(totalSupply() < maxAirdrop, "Exceed airdop allowance limit.");
+    require(_totalAirdrop + 1 <= maxAirdrop, "Exceed airdop allowance limit.");
     _mint(MintMode.AIRDROP, _to, numberToken); // mint for marketing & influencer
+  }
+
+  /**
+   * @dev Minted for marketing purpose before public sale e.g. raffling/competetion
+   * @param _to address to receive airdrop
+   * @param numberToken amount to airdrop
+   * @notice You only call this before private sale, and it should be call when offline
+   */
+  function batchAirdrop(address[] memory _to, uint256 numberToken) public offline onlyOwner {
+    require(_totalAirdrop + (_to.length * numberToken) <= maxAirdrop, "Exceed airdop allowance limit.");
+    for (uint i = 0; i < _to.length; i++) {
+      _mint(MintMode.AIRDROP, _to[i], numberToken); // mint for marketing & influencer
+    }
   }
 
   /**
@@ -145,7 +158,7 @@ contract DannyNFT is DannyBase, VRFConsumerBase {
   }
 
   function totalAirdrop() public view returns(uint) {
-    return _totalPrivateSale;
+    return _totalAirdrop;
   }
 
   function totalPrivateSale() public view returns(uint) {
@@ -194,7 +207,7 @@ contract DannyNFT is DannyBase, VRFConsumerBase {
     publicSaleRevealed = true;
   }
 
-  function originalOwn(address addr) public view onlyOwner returns(uint256) {
+  function originalOwn(address addr) public view returns(uint256) {
     if (originalOwner[addr] == false) return 0;
     return originalOwns[addr];
   }
