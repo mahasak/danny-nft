@@ -6,7 +6,7 @@ require("@nomiclabs/hardhat-waffle");
 require("@nomiclabs/hardhat-etherscan");
 
 const fs = require('fs')
-const {privateKey, etherscanApiKey, infuraID } = require('./.secrets.json');
+const {privateKey, etherscanApiKey, infuraID, bscscanApiKey } = require('./.secrets.json');
 
 module.exports = {
   solidity: {

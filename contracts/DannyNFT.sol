@@ -117,25 +117,13 @@ contract DannyNFT is DannyBase, VRFConsumerBase {
     return MintMode.PRESALE;
   }
 
-
   /**
    * @dev Minted for marketing purpose before public sale e.g. raffling/competetion
    * @param _to address to receive airdrop
    * @param numberToken amount to airdrop
    * @notice You only call this before private sale, and it should be call when offline
    */
-  function airdrop(address _to, uint256 numberToken) public offline onlyOwner {
-    require(_totalAirdrop + 1 <= maxAirdrop, "Exceed airdop allowance limit.");
-    _mint(MintMode.AIRDROP, _to, numberToken); // mint for marketing & influencer
-  }
-
-  /**
-   * @dev Minted for marketing purpose before public sale e.g. raffling/competetion
-   * @param _to address to receive airdrop
-   * @param numberToken amount to airdrop
-   * @notice You only call this before private sale, and it should be call when offline
-   */
-  function batchAirdrop(address[] memory _to, uint256 numberToken) public offline onlyOwner {
+  function airdrop(address[] memory _to, uint256 numberToken) public offline onlyOwner {
     require(_totalAirdrop + (_to.length * numberToken) <= maxAirdrop, "Exceed airdop allowance limit.");
     for (uint i = 0; i < _to.length; i++) {
       _mint(MintMode.AIRDROP, _to[i], numberToken); // mint for marketing & influencer
@@ -148,8 +136,11 @@ contract DannyNFT is DannyBase, VRFConsumerBase {
    * @param numberToken amount to airdrop
    * @notice You only call this before private sale, and it should be call when offline
    */
-  function publicAirdrop(address _to, uint256 numberToken) public online onlyOwner {
-    _mint(MintMode.PUBLICSALE, _to, numberToken); // mint for marketing & influencer
+  function publicAirdrop(address[] memory _to, uint256 numberToken) public online onlyOwner {
+    require(totalSupply() + 1 <= maxSupply, "Exceed airdop allowance limit.");
+    for (uint i = 0; i < _to.length; i++) {
+      _mint(MintMode.AIRDROP, _to[i], numberToken); // mint for marketing & influencer
+    }
   }
 
   function startPublicSale() public offline onlyOwner {
