@@ -33,10 +33,12 @@ contract DannyNFT is DannyBase, VRFConsumerBase {
   bool privateSaleRevealed = false;
   bool publicSaleRevealed = false;
   bool publicSaleStarted = false;
+  uint MAX_PRESALE_AMOUNT = 2;
 
   mapping(address => uint) private originalOwns;
   mapping(address => bool) private originalOwner;
   mapping(address => bool) private presaleAllowed;
+  mapping(address => uint) private presaleMinted;
 
   constructor(
     address _VRFCoordinator,
@@ -74,6 +76,7 @@ contract DannyNFT is DannyBase, VRFConsumerBase {
   function _mint(MintMode mode,address _to,uint256 numberToken) internal returns (bool) {
     if (mode == MintMode.PRESALE) {
       require(presaleAllowed[_to], "Only whitelist addresses allowed");
+      require(presaleMinted[_to] + numberToken <= MAX_PRESALE_AMOUNT, "Max presale amount exceeded");
     }
     for (uint256 i = 0; i < numberToken; i++) {
       uint256 tokenIndex = currentTokenIndex(mode);      
