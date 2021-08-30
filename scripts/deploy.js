@@ -22,8 +22,8 @@ async function main() {
   const token_name = "DarwinX Fan Token";
   const token_symbol = "DANX";
   const mint_fee = new BigNumber.from("1000000000000000") // 0.01 ETH
-  const privateSalePrice = new BigNumber.from("7700000000000000") // 0.01 ETH
-  const publicSalePrice = new BigNumber.from("8800000000000000") // 0.01 ETH
+  const privateSalePrice = new BigNumber.from("77000000000000000") // 0.01 ETH
+  const publicSalePrice = new BigNumber.from("88000000000000000") // 0.01 ETH
   const lootboxUrl = "https://maximillion-dev.web.app/metadata/loot.json";
   const mintLimitPerTx = 10;
   const maxAirdrop = 111;

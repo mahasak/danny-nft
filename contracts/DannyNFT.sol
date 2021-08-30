@@ -32,7 +32,6 @@ contract DannyNFT is DannyBase, VRFConsumerBase {
   bool public shuffled = false;
   bool privateSaleRevealed = false;
   bool publicSaleRevealed = false;
-  bool publicSaleStarted = false;
   uint MAX_PRESALE_AMOUNT = 2;
 
   mapping(address => uint) private originalOwns;
@@ -75,8 +74,12 @@ contract DannyNFT is DannyBase, VRFConsumerBase {
    */
   function _mint(MintMode mode,address _to,uint256 numberToken) internal returns (bool) {
     if (mode == MintMode.PRESALE) {
-      require(presaleAllowed[_to], "Only whitelist addresses allowed");
-      require(presaleMinted[_to] + numberToken <= MAX_PRESALE_AMOUNT, "Max presale amount exceeded");
+      require(presaleAllowed[_to], "Only whitelist addresses allowed.");
+      require(presaleMinted[_to] + numberToken <= MAX_PRESALE_AMOUNT, "Max presale amount exceeded.");
+    }
+
+    if(mode == MintMode.PUBLICSALE) {
+      require(numberToken <= limitTokenPerTx, "Max public sale amount exceeded.");
     }
     for (uint256 i = 0; i < numberToken; i++) {
       uint256 tokenIndex = currentTokenIndex(mode);      
@@ -88,7 +91,10 @@ contract DannyNFT is DannyBase, VRFConsumerBase {
         }
         originalOwns[_to] += 1;
         if (mode == MintMode.AIRDROP) _totalAirdrop = _totalAirdrop + 1;
-        if (mode == MintMode.PRESALE) _totalPrivateSale = _totalPrivateSale + 1;
+        if (mode == MintMode.PRESALE) {
+          _totalPrivateSale = _totalPrivateSale + 1;
+          presaleMinted[_to] = presaleMinted[_to] + numberToken;
+        }
         if (mode == MintMode.PUBLICSALE) _totalPublicSale = _totalPublicSale + 1;
       }
     }
@@ -120,7 +126,7 @@ contract DannyNFT is DannyBase, VRFConsumerBase {
   }
 
   function getMintMode() internal view returns(MintMode) {
-    if (publicSaleStarted) return MintMode.PUBLICSALE;
+    if (publicSale) return MintMode.PUBLICSALE;
     return MintMode.PRESALE;
   }
 
@@ -156,8 +162,8 @@ contract DannyNFT is DannyBase, VRFConsumerBase {
     }
   }
 
-  function startPublicSale() public offline onlyOwner {
-    publicSaleStarted = true;
+  function startPublicSale() public online onlyOwner {
+    publicSale = true;
     publicSaleIndex = currentTokenIndex(MintMode.PRESALE);
   }
 

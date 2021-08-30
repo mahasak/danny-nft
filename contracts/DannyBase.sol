@@ -58,12 +58,12 @@ contract DannyBase is Ownable, ERC721 {
      * @param numberToken number of token to mint
      */
     modifier mintable(uint256 numberToken) {
-        require(numberToken <= limitTokenPerTx, "Number Token invalid");
+        require(numberToken <= limitTokenPerTx, "Number Token invalid.");
         if(publicSale) {
-            require(msg.value >= numberToken.mul(publicSalePrice), "Payment error");
+            require(msg.value >= numberToken.mul(publicSalePrice), "Payment error.");
         }
         if(!publicSale) {
-            require(msg.value >= numberToken.mul(privateSalePrice), "Payment error");
+            require(msg.value >= numberToken.mul(privateSalePrice), "Payment error.");
         }
         _;
     }
