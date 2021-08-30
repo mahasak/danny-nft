@@ -23,13 +23,13 @@ contract DannyNFT is DannyBase, VRFConsumerBase {
   uint private _totalPublicSale;
   uint private publicSaleIndex;
 
-  uint256[] internal metaIds;
+  uint256[] public metaIds;
 
   string public specialURI;
   string public defaultURI;
 
-  bool requestedVRF = false;
-  bool shuffled = false;
+  bool public requestedVRF = false;
+  bool public shuffled = false;
   bool privateSaleRevealed = false;
   bool publicSaleRevealed = false;
   bool publicSaleStarted = false;
@@ -197,6 +197,13 @@ contract DannyNFT is DannyBase, VRFConsumerBase {
     emit DannyNFTRandomnessFulfil(_requestId, seed);
   }
 
+  function revealed(uint256 tokenId) internal view returns(bool) {
+    if (!requestedVRF || seed == 0) return false;
+    if (tokenId <= _totalPrivateSale +maxAirdrop && privateSaleRevealed ) return true;
+    return publicSaleRevealed;
+  }
+
+
   function isRevealed(uint256 tokenId) internal view returns (bool) {
     if (!shuffled) return false;
     if (tokenId <= _totalPrivateSale +maxAirdrop && privateSaleRevealed ) return true;
@@ -220,12 +227,9 @@ contract DannyNFT is DannyBase, VRFConsumerBase {
     require(requestedVRF, "You have NOT request for VRF");
     require(seed > 0, "Your random seed is not populated");
     require(!shuffled, "You can only shuffle once");
-    metaIds = new uint256[](maxSupply);
-    for (uint256 i = 1; i <= maxSupply; i++) {
-      metaIds[i] = i;
-    }
+    
     // shuffle meta id
-    for (uint256 i = 1; i <= maxSupply; i++) {
+    for (uint256 i = 1; i < maxSupply+1; i++) {
       uint256 j = (uint256(keccak256(abi.encode(seed, i))) % (maxSupply));
       (metaIds[i], metaIds[j]) = (metaIds[j], metaIds[i]);
     }
@@ -234,10 +238,26 @@ contract DannyNFT is DannyBase, VRFConsumerBase {
   }
 
   function metadataOf(uint256 tokenId) public view returns (string memory) {
-    require(tokenId < totalSupply(), "Token id invalid");
-    bool isTokenRevealed = isRevealed(tokenId);
-    if (seed == 0 || !shuffled || !isTokenRevealed) return "default";
-    return Strings.toString(metaIds[tokenId]);
+    if(_msgSender() != owner()) {
+      require(tokenId < totalSupply(), "Token id invalid");
+    }
+    
+    if(!revealed(tokenId)) return "default";
+
+    uint256[] memory metaIds2 = new uint256[](maxSupply);
+    uint256 ss = seed;
+
+    for (uint256 i = 1; i < maxSupply; i++) {
+      metaIds2[i] = i;
+    }
+
+    // shuffle meta id
+    for (uint256 i = 1; i < maxSupply; i++) {
+      uint256 j = (uint256(keccak256(abi.encode(ss, i))) % (maxSupply));
+      (metaIds2[i], metaIds2[j]) = (metaIds2[j], metaIds2[i]);
+    }
+
+    return metaIds2[tokenId].toString();
   }
 
   /**

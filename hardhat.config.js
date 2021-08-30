@@ -32,7 +32,8 @@ module.exports = {
     },
     rinkeby: {
       url: `https://rinkeby.infura.io/v3/${infuraID}`,
-      accounts: [privateKey]
+      accounts: [privateKey],
+      gas: 200000000
     },
     infura: {
       url: `https://mainnet.infura.io/v3/${infuraID}`,
@@ -55,6 +56,6 @@ module.exports = {
     timeout: 20000
   },
   etherscan: {
-    apiKey: bscscanApiKey
+    apiKey: etherscanApiKey
   },
 };
