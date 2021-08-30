@@ -268,7 +268,7 @@ describe("DannyNFT", function () {
     expect(presale).to.equal(2);
   });
 
-  it("Private Sale should pass when added to allowlist and not exceed presale amount(2)", async function () {    
+  it("Private Sale should fail when added to allowlist and exceed presale amount(2)", async function () {    
     const [owner, addr1, addr2] = await ethers.getSigners();
     const pointZeroOneEth = new BigNumber.from("1000000000000000") // 0.01 ETH
     const contract = await hre.ethers.getContractFactory("DannyNFT");
