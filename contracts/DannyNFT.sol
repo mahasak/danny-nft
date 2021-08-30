@@ -14,16 +14,18 @@ contract DannyNFT is DannyBase, VRFConsumerBase {
 
   enum MintMode {AIRDROP, PRESALE, PUBLICSALE}
 
-  uint256 public seed;
+  
   bytes32 internal keyHash;
+
+  uint256 public seed;
   uint256 internal chainlinkFee;
+  uint256[] public metaIds;
 
   uint private _totalAirdrop;
   uint private _totalPrivateSale;
   uint private _totalPublicSale;
   uint private publicSaleIndex;
-
-  uint256[] public metaIds;
+  uint MAX_PRESALE_AMOUNT = 2;
 
   string public specialURI;
   string public defaultURI;
@@ -32,8 +34,7 @@ contract DannyNFT is DannyBase, VRFConsumerBase {
   bool public shuffled = false;
   bool privateSaleRevealed = false;
   bool publicSaleRevealed = false;
-  uint MAX_PRESALE_AMOUNT = 2;
-
+  
   mapping(address => uint) private originalOwns;
   mapping(address => bool) private originalOwner;
   mapping(address => bool) private presaleAllowed;
