@@ -11,6 +11,8 @@ contract DannyBase is Ownable, ERC721 {
     uint256 public limitTokenPerTx = 10;
     // max airdrop quota allowed
     uint256 public maxAirdrop = 111;
+    // max airdrop quota allowed
+    uint256 public maxPrivateSale = 1000;
     // max supply NFT
     uint256 public maxSupply = 11111;
     // price for private sale stage (0.077 ETH)

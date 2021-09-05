@@ -77,10 +77,12 @@ contract DannyNFT is DannyBase, VRFConsumerBase {
     if (mode == MintMode.PRESALE) {
       require(presaleAllowed[_to], "Only whitelist addresses allowed.");
       require(presaleMinted[_to] + numberToken <= MAX_PRESALE_AMOUNT, "Max presale amount exceeded.");
+      require(_totalPrivateSale + numberToken <= maxPrivateSale, "Cannot oversell");
     }
 
     if(mode == MintMode.PUBLICSALE) {
       require(numberToken <= limitTokenPerTx, "Max public sale amount exceeded.");
+      
     }
     for (uint256 i = 0; i < numberToken; i++) {
       uint256 tokenIndex = currentTokenIndex(mode);      
