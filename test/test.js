@@ -114,15 +114,15 @@ describe("DannyNFT", function () {
       "http://ipfs.io/x");
           await token.deployed();
     
-    await token.airdrop([addr1.address, addr2.address], 5)
+    await token.airdrop([addr1.address, addr2.address], 1)
     
     const addr1Balance = await token.balanceOf(addr1.address);
-    expect(BigNumber.from("5")._hex).to.equal(addr1Balance._hex);
+    expect(BigNumber.from("1")._hex).to.equal(addr1Balance._hex);
     const addr2Balance = await token.balanceOf(addr2.address);
-    expect(BigNumber.from("5")._hex).to.equal(addr2Balance._hex);
+    expect(BigNumber.from("1")._hex).to.equal(addr2Balance._hex);
 
     const airdropped = await token.totalAirdrop();
-    expect(airdropped).to.equal(10);
+    expect(airdropped).to.equal(2);
   });
 
   it("Airdrop should fail when mint over limit", async function () {    

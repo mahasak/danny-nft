@@ -4,9 +4,11 @@
 require("@nomiclabs/hardhat-ethers");
 require("@nomiclabs/hardhat-waffle");
 require("@nomiclabs/hardhat-etherscan");
+require("hardhat-gas-reporter");
 
 const fs = require('fs')
-const {privateKey, etherscanApiKey, infuraID, bscscanApiKey } = require('./.secrets.json');
+const {privateKey, etherscanApiKey, infuraID, bscscanApiKey, coinmarketcapKey } = require('./.secrets.json');
+ 
 
 module.exports = {
   solidity: {
@@ -58,4 +60,9 @@ module.exports = {
   etherscan: {
     apiKey: etherscanApiKey
   },
+  gasReporter: {
+    currency: 'USD',
+    gasPrice: 100,
+    coinmarketcap: coinmarketcapKey,
+  }
 };
